@@ -4,7 +4,7 @@ using Unity.Mathematics;
 using UnityEngine;
 
 [System.Serializable]
-public class VeiwGrid
+public class ViewGrid
 {
     public int cost = int.MaxValue;
 
@@ -15,7 +15,7 @@ public class VeiwGrid
     //test
     public SpriteRenderer render;
     public TMP_Text text;
-    public VeiwGrid(Vector2 _gridPos, SpriteRenderer _render, TMP_Text _text)
+    public ViewGrid(Vector2 _gridPos, SpriteRenderer _render, TMP_Text _text)
     {
         position = _gridPos;
         render = _render;
@@ -26,13 +26,13 @@ public class VeiwGrid
 public class ViewFlowFieldManager : MonoBehaviour
 {
     [SerializeField, Header("맵 사이즈")] private Vector2 size;
-    [SerializeField, Header("모든 그리드 정보")] private VeiwGrid[] gridInfo; //시각화를 위한 변수
+    [SerializeField, Header("모든 그리드 정보")] private ViewGrid[] gridInfo; //시각화를 위한 변수
 
     public static ViewFlowFieldManager Instance { get; private set; }
 
-    private Dictionary<Vector2, VeiwGrid> grid = new();
-    private Queue<VeiwGrid> queue = new();
-    private HashSet<VeiwGrid> hash = new();
+    private Dictionary<Vector2, ViewGrid> grid = new();
+    private Queue<ViewGrid> queue = new();
+    private HashSet<ViewGrid> hash = new();
 
     private Vector2[] checkNodePos =
     {
@@ -64,7 +64,7 @@ public class ViewFlowFieldManager : MonoBehaviour
     private void SetGrid()
     {
         var mapLayer = LayerMask.GetMask("Map");
-        var tempList = new List<VeiwGrid>();//
+        var tempList = new List<ViewGrid>();//
         var arrow = Resources.Load<GameObject>("Grid");//
         var parent = new GameObject("AllGrid");//
         var sprite = Resources.Load<Sprite>("Direction");//
@@ -91,7 +91,7 @@ public class ViewFlowFieldManager : MonoBehaviour
                     var render = spawnArrow.GetComponent<SpriteRenderer>();
                     render.sprite = sprite;
                     var text = render.transform.GetChild(0).GetComponent<TMP_Text>();
-                    var gridNode = new VeiwGrid(spanwPos, render, text);
+                    var gridNode = new ViewGrid(spanwPos, render, text);
                     tempList.Add(gridNode);
                     grid.Add(spanwPos, gridNode);
                     //========================test
@@ -160,7 +160,7 @@ public class ViewFlowFieldManager : MonoBehaviour
         SetView();
     }
 
-    public VeiwGrid GetGrid(Vector2 _position)
+    public ViewGrid GetGrid(Vector2 _position)
     {
         _position.x = Mathf.Floor(_position.x) + 0.5f;
         _position.y = Mathf.Floor(_position.y) + 0.5f;
