@@ -4,10 +4,9 @@ using UnityEngine;
 public class Grid
 {
     public int cost = int.MaxValue;
-
     public Vector2 direction;
-    public Vector2 position;
 
+    public readonly Vector2 position;
     public Grid(Vector2 _position) => position = _position;
 }
 
@@ -22,14 +21,15 @@ public class FlowFieldManager : MonoBehaviour
 
     private Vector2[] checkNodePos =
     {
-        new Vector2(1, 0),
+        new Vector2(0, -1),
         new Vector2(-1, 0),
         new Vector2(0, 1),
-        new Vector2(0, -1),
+        new Vector2(1, 0),
+
         new Vector2(-1, -1),
         new Vector2(-1, 1),
-        new Vector2(1, -1),
         new Vector2(1, 1),
+        new Vector2(1, -1),
     };
 
 #if UNITY_EDITOR
@@ -84,7 +84,7 @@ public class FlowFieldManager : MonoBehaviour
         }
     }
 
-    public void UpdateGrid(Vector2 _targetPos)
+    public void SetTarget(Vector2 _targetPos)
     {
         _targetPos.x = Mathf.Floor(_targetPos.x) + 0.5f;
         _targetPos.y = Mathf.Floor(_targetPos.y) + 0.5f;
@@ -94,6 +94,8 @@ public class FlowFieldManager : MonoBehaviour
         queue.Clear();
 
         grid[_targetPos].cost = 0;
+        grid[_targetPos].direction = Vector2.zero;
+
         hash.Add(grid[_targetPos]);
         queue.Enqueue(grid[_targetPos]);
 
@@ -104,13 +106,19 @@ public class FlowFieldManager : MonoBehaviour
             for (int i = 0; i < checkNodePos.Length; i++)
             {
                 var nextNode = node.position + checkNodePos[i];
-
                 if (!grid.ContainsKey(nextNode)) continue;
-                else if (hash.Contains(grid[nextNode])) continue;
 
-                grid[nextNode].cost = node.cost + 1;
-                queue.Enqueue(grid[nextNode]);
-                hash.Add(grid[nextNode]);
+                else if (!hash.Contains(grid[nextNode]))
+                {
+                    grid[nextNode].cost = node.cost + 1;
+                    queue.Enqueue(grid[nextNode]);
+                    hash.Add(grid[nextNode]);
+                }
+
+                if (grid[nextNode].cost < node.cost)
+                {
+                    node.direction = (grid[nextNode].position - node.position).normalized;
+                }
             }
         }
     }

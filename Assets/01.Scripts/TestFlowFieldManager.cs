@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using TMPro;
+using Unity.Mathematics;
 using UnityEngine;
 
 [System.Serializable]
@@ -12,10 +13,12 @@ public class TestGrid
     //public Grid(Vector2 _gridPos) => position = _gridPos;
 
     //test
+    public SpriteRenderer render;
     public TMP_Text text;
-    public TestGrid(Vector2 _gridPos, TMP_Text _text)
+    public TestGrid(Vector2 _gridPos, SpriteRenderer _render, TMP_Text _text)
     {
         position = _gridPos;
+        render = _render;
         text = _text;
     }
 }
@@ -26,21 +29,22 @@ public class TestFlowFieldManager : MonoBehaviour
     [SerializeField, Header("모든 그리드 정보")] private TestGrid[] gridInfo; //시각화를 위한 변수
 
     public static TestFlowFieldManager Instance { get; private set; }
-    public Dictionary<Vector2, TestGrid> grid { get; private set; } = new();
 
+    private Dictionary<Vector2, TestGrid> grid = new();
     private Queue<TestGrid> queue = new();
     private HashSet<TestGrid> hash = new();
 
     private Vector2[] checkNodePos =
     {
-        new Vector2(1, 0),
+        new Vector2(0, -1),
         new Vector2(-1, 0),
         new Vector2(0, 1),
-        new Vector2(0, -1),
-        new Vector2(-1, -1),
-        new Vector2(-1, 1),
-        new Vector2(1, -1),
-        new Vector2(1, 1),
+        new Vector2(1, 0),
+
+        //new Vector2(-1, -1),
+        //new Vector2(-1, 1),
+        //new Vector2(1, 1),
+        //new Vector2(1, -1),
     };
 
     private void Awake()
@@ -83,9 +87,9 @@ public class TestFlowFieldManager : MonoBehaviour
                     spawnArrow.transform.position = spanwPos;
                     spawnArrow.transform.SetParent(parent.transform);
                     spawnArrow.name = $"{arrow.name} {tempList.Count}";
-                    var text = spawnArrow.GetComponent<TMP_Text>();
-                    text.text = "X";
-                    var gridNode = new TestGrid(spanwPos, text);
+                    var render = spawnArrow.GetComponent<SpriteRenderer>();
+                    var text = render.transform.GetChild(0).GetComponent<TMP_Text>();
+                    var gridNode = new TestGrid(spanwPos, render, text);
                     tempList.Add(gridNode);
                     grid.Add(spanwPos, gridNode);
                     //========================test
@@ -112,7 +116,7 @@ public class TestFlowFieldManager : MonoBehaviour
     }
 #endif
 
-    public void UpdateGrid(Vector2 _targetPos)
+    public void SetTarget(Vector2 _targetPos)
     {
         _targetPos.x = Mathf.Floor(_targetPos.x) + 0.5f;
         _targetPos.y = Mathf.Floor(_targetPos.y) + 0.5f;
@@ -122,6 +126,8 @@ public class TestFlowFieldManager : MonoBehaviour
         queue.Clear();
 
         grid[_targetPos].cost = 0;
+        grid[_targetPos].direction = Vector2.zero;
+
         hash.Add(grid[_targetPos]);
         queue.Enqueue(grid[_targetPos]);
 
@@ -132,16 +138,52 @@ public class TestFlowFieldManager : MonoBehaviour
             for (int i = 0; i < checkNodePos.Length; i++)
             {
                 var nextNode = node.position + checkNodePos[i];
-
                 if (!grid.ContainsKey(nextNode)) continue;
-                else if (hash.Contains(grid[nextNode])) continue;
 
-                grid[nextNode].cost = node.cost + 1;
-                queue.Enqueue(grid[nextNode]);
-                hash.Add(grid[nextNode]);
+                else if (!hash.Contains(grid[nextNode]))
+                {
+                    grid[nextNode].cost = node.cost + 1;
+                    queue.Enqueue(grid[nextNode]);
+                    hash.Add(grid[nextNode]);
+                }
 
-                grid[nextNode].text.text = grid[nextNode].cost.ToString(); //test;
+                if (grid[nextNode].cost < node.cost)
+                {
+                    node.direction = (grid[nextNode].position - node.position).normalized;
+                }
             }
+        }
+
+        //test;
+        SetView();
+    }
+
+    public TestGrid GetGrid(Vector2 _position)
+    {
+        _position.x = Mathf.Floor(_position.x) + 0.5f;
+        _position.y = Mathf.Floor(_position.y) + 0.5f;
+
+        if (!grid.ContainsKey(_position)) return null;
+        return grid[_position];
+    }
+
+    private void SetView()
+    {
+        //test전용 메서드
+        for (int i = 0; i < gridInfo.Length; i++)
+        {
+            gridInfo[i].direction = grid[gridInfo[i].position].direction;
+
+            var direction = gridInfo[i].direction;
+
+            var atan = math.atan2(direction.y, direction.x);
+            var deg = math.degrees(atan);
+
+            var sprite = Resources.Load<Sprite>("Direction");
+            gridInfo[i].render.sprite = sprite;
+            gridInfo[i].render.transform.rotation = Quaternion.Euler(0, 0, deg);
+            gridInfo[i].text.transform.rotation = Quaternion.identity;
+            gridInfo[i].text.text = $"{gridInfo[i].cost}";
         }
     }
 }

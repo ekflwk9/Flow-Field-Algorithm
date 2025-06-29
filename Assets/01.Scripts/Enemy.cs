@@ -3,7 +3,12 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    [SerializeField, Header("이동 속도")] private float moveSpeed = 1;
     [SerializeField] private Rigidbody2D rigid;
+
+    private float timer;
+    private float moveTimer;
+    private Vector2 direction;
 
     private void Reset()
     {
@@ -16,8 +21,26 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    private void Awake()
+    {
+        moveTimer = 1 / moveSpeed;
+    }
+
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.X)) TestFlowFieldManager.Instance.UpdateGrid(this.transform.position);
+        timer += Time.smoothDeltaTime;
+
+        if (timer > moveTimer)
+        {
+            timer = 0;
+            var grid = TestFlowFieldManager.Instance.GetGrid(this.transform.position);
+            this.transform.position = grid.position;
+            direction = grid.direction;
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        rigid.linearVelocity = direction * moveSpeed;
     }
 }
