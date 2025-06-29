@@ -13,7 +13,6 @@ public class Target : MonoBehaviour
             worldPos.z = 0f;
 
             this.transform.position = worldPos;
-            //TestFlowFieldManager.Instance.SetTarget(worldPos);
             FlowFieldManager.Instance.SetTarget(worldPos);
         }
     }

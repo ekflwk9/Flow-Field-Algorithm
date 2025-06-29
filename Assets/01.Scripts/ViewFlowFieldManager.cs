@@ -4,7 +4,7 @@ using Unity.Mathematics;
 using UnityEngine;
 
 [System.Serializable]
-public class TestGrid
+public class VeiwGrid
 {
     public int cost = int.MaxValue;
 
@@ -15,7 +15,7 @@ public class TestGrid
     //test
     public SpriteRenderer render;
     public TMP_Text text;
-    public TestGrid(Vector2 _gridPos, SpriteRenderer _render, TMP_Text _text)
+    public VeiwGrid(Vector2 _gridPos, SpriteRenderer _render, TMP_Text _text)
     {
         position = _gridPos;
         render = _render;
@@ -23,16 +23,16 @@ public class TestGrid
     }
 }
 
-public class TestFlowFieldManager : MonoBehaviour
+public class ViewFlowFieldManager : MonoBehaviour
 {
     [SerializeField, Header("맵 사이즈")] private Vector2 size;
-    [SerializeField, Header("모든 그리드 정보")] private TestGrid[] gridInfo; //시각화를 위한 변수
+    [SerializeField, Header("모든 그리드 정보")] private VeiwGrid[] gridInfo; //시각화를 위한 변수
 
-    public static TestFlowFieldManager Instance { get; private set; }
+    public static ViewFlowFieldManager Instance { get; private set; }
 
-    private Dictionary<Vector2, TestGrid> grid = new();
-    private Queue<TestGrid> queue = new();
-    private HashSet<TestGrid> hash = new();
+    private Dictionary<Vector2, VeiwGrid> grid = new();
+    private Queue<VeiwGrid> queue = new();
+    private HashSet<VeiwGrid> hash = new();
 
     private Vector2[] checkNodePos =
     {
@@ -64,7 +64,7 @@ public class TestFlowFieldManager : MonoBehaviour
     private void SetGrid()
     {
         var mapLayer = LayerMask.GetMask("Map");
-        var tempList = new List<TestGrid>();//
+        var tempList = new List<VeiwGrid>();//
         var arrow = Resources.Load<GameObject>("Grid");//
         var parent = new GameObject("AllGrid");//
         var sprite = Resources.Load<Sprite>("Direction");//
@@ -91,7 +91,7 @@ public class TestFlowFieldManager : MonoBehaviour
                     var render = spawnArrow.GetComponent<SpriteRenderer>();
                     render.sprite = sprite;
                     var text = render.transform.GetChild(0).GetComponent<TMP_Text>();
-                    var gridNode = new TestGrid(spanwPos, render, text);
+                    var gridNode = new VeiwGrid(spanwPos, render, text);
                     tempList.Add(gridNode);
                     grid.Add(spanwPos, gridNode);
                     //========================test
@@ -160,7 +160,7 @@ public class TestFlowFieldManager : MonoBehaviour
         SetView();
     }
 
-    public TestGrid GetGrid(Vector2 _position)
+    public VeiwGrid GetGrid(Vector2 _position)
     {
         _position.x = Mathf.Floor(_position.x) + 0.5f;
         _position.y = Mathf.Floor(_position.y) + 0.5f;
