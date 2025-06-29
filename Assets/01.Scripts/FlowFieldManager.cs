@@ -4,9 +4,9 @@ using UnityEngine;
 public class Grid
 {
     public int cost = int.MaxValue;
-    public Vector2 direction;
 
-    public readonly Vector2 position;
+    public Vector2 direction;
+    public Vector2 position;
     public Grid(Vector2 _position) => position = _position;
 }
 
@@ -14,10 +14,10 @@ public class FlowFieldManager : MonoBehaviour
 {
     [SerializeField, Header("맵 사이즈")] private Vector2 size;
     public static FlowFieldManager Instance { get; private set; }
-    public Dictionary<Vector2, Grid> grid { get; private set; } = new();
 
-    private Queue<Grid> queue = new();
-    private HashSet<Grid> hash = new();
+    public Dictionary<Vector2, Grid> grid = new();
+    private HashSet<Grid> setCostGrid = new();
+    private Queue<Grid> setNode = new();
 
     private Vector2[] checkNodePos =
     {
@@ -25,11 +25,6 @@ public class FlowFieldManager : MonoBehaviour
         new Vector2(-1, 0),
         new Vector2(0, 1),
         new Vector2(1, 0),
-
-        new Vector2(-1, -1),
-        new Vector2(-1, 1),
-        new Vector2(1, 1),
-        new Vector2(1, -1),
     };
 
 #if UNITY_EDITOR
@@ -90,36 +85,45 @@ public class FlowFieldManager : MonoBehaviour
         _targetPos.y = Mathf.Floor(_targetPos.y) + 0.5f;
         if (!grid.ContainsKey(_targetPos)) return;
 
-        hash.Clear();
-        queue.Clear();
+        setCostGrid.Clear();
+        setNode.Clear();
 
         grid[_targetPos].cost = 0;
         grid[_targetPos].direction = Vector2.zero;
 
-        hash.Add(grid[_targetPos]);
-        queue.Enqueue(grid[_targetPos]);
+        setCostGrid.Add(grid[_targetPos]);
+        setNode.Enqueue(grid[_targetPos]);
 
-        while (queue.Count > 0)
+        while (setNode.Count > 0)
         {
-            var node = queue.Dequeue();
+            var thisNode = setNode.Dequeue();
 
             for (int i = 0; i < checkNodePos.Length; i++)
             {
-                var nextNode = node.position + checkNodePos[i];
+                var nextNode = thisNode.position + checkNodePos[i];
                 if (!grid.ContainsKey(nextNode)) continue;
 
-                else if (!hash.Contains(grid[nextNode]))
+                else if (!setCostGrid.Contains(grid[nextNode]))
                 {
-                    grid[nextNode].cost = node.cost + 1;
-                    queue.Enqueue(grid[nextNode]);
-                    hash.Add(grid[nextNode]);
+                    grid[nextNode].cost = thisNode.cost + 1;
+                    setNode.Enqueue(grid[nextNode]);
+                    setCostGrid.Add(grid[nextNode]);
                 }
 
-                if (grid[nextNode].cost < node.cost)
+                if (grid[nextNode].cost < thisNode.cost)
                 {
-                    node.direction = (grid[nextNode].position - node.position).normalized;
+                    thisNode.direction = (grid[nextNode].position - thisNode.position).normalized;
                 }
             }
         }
+    }
+
+    public Grid GetGrid(Vector2 _position)
+    {
+        _position.x = Mathf.Floor(_position.x) + 0.5f;
+        _position.y = Mathf.Floor(_position.y) + 0.5f;
+
+        if (!grid.ContainsKey(_position)) return null;
+        return grid[_position];
     }
 }

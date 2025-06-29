@@ -33,7 +33,8 @@ public class Enemy : MonoBehaviour
         if (timer > moveTimer)
         {
             timer = 0;
-            var grid = TestFlowFieldManager.Instance.GetGrid(this.transform.position);
+            //var grid = TestFlowFieldManager.Instance.GetGrid(this.transform.position);
+            var grid = FlowFieldManager.Instance.GetGrid(this.transform.position);
             this.transform.position = grid.position;
             direction = grid.direction;
         }

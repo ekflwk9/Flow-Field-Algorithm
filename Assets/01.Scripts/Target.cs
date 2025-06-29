@@ -6,11 +6,15 @@ public class Target : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.Mouse0))
         {
-            var mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            mouse.z = -10;
+            var mousePos = Input.mousePosition;
+            mousePos.z = 10f;
 
-            this.transform.position = mouse;
-            TestFlowFieldManager.Instance.SetTarget(mouse);
+            var worldPos = Camera.main.ScreenToWorldPoint(mousePos);
+            worldPos.z = 0f;
+
+            this.transform.position = worldPos;
+            //TestFlowFieldManager.Instance.SetTarget(worldPos);
+            FlowFieldManager.Instance.SetTarget(worldPos);
         }
     }
 }

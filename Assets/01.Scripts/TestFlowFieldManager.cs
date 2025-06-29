@@ -67,6 +67,7 @@ public class TestFlowFieldManager : MonoBehaviour
         var tempList = new List<TestGrid>();//
         var arrow = Resources.Load<GameObject>("Grid");//
         var parent = new GameObject("AllGrid");//
+        var sprite = Resources.Load<Sprite>("Direction");//
 
         var originPos = size * -0.5f;
         originPos.x += 0.5f;
@@ -88,6 +89,7 @@ public class TestFlowFieldManager : MonoBehaviour
                     spawnArrow.transform.SetParent(parent.transform);
                     spawnArrow.name = $"{arrow.name} {tempList.Count}";
                     var render = spawnArrow.GetComponent<SpriteRenderer>();
+                    render.sprite = sprite;
                     var text = render.transform.GetChild(0).GetComponent<TMP_Text>();
                     var gridNode = new TestGrid(spanwPos, render, text);
                     tempList.Add(gridNode);
@@ -174,13 +176,14 @@ public class TestFlowFieldManager : MonoBehaviour
         {
             gridInfo[i].direction = grid[gridInfo[i].position].direction;
 
+            if (gridInfo[i].direction == Vector2.zero) gridInfo[i].render.gameObject.SetActive(false);
+            else if (!gridInfo[i].render.gameObject.activeSelf) gridInfo[i].render.gameObject.SetActive(true);
+
             var direction = gridInfo[i].direction;
 
             var atan = math.atan2(direction.y, direction.x);
             var deg = math.degrees(atan);
 
-            var sprite = Resources.Load<Sprite>("Direction");
-            gridInfo[i].render.sprite = sprite;
             gridInfo[i].render.transform.rotation = Quaternion.Euler(0, 0, deg);
             gridInfo[i].text.transform.rotation = Quaternion.identity;
             gridInfo[i].text.text = $"{gridInfo[i].cost}";
