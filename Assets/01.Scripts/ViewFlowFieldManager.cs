@@ -31,20 +31,20 @@ public class ViewFlowFieldManager : MonoBehaviour
     public static ViewFlowFieldManager Instance { get; private set; }
 
     private Dictionary<Vector2, ViewGrid> grid = new();
-    private Queue<ViewGrid> queue = new();
-    private HashSet<ViewGrid> hash = new();
+    private Queue<ViewGrid> searchGrid = new();
+    private HashSet<ViewGrid> setCost = new();
 
-    private Vector2[] checkNodePos =
+    private Vector2[] checkPos =
     {
         new Vector2(0, -1),
         new Vector2(-1, 0),
         new Vector2(0, 1),
         new Vector2(1, 0),
 
-        //new Vector2(-1, -1),
-        //new Vector2(-1, 1),
-        //new Vector2(1, 1),
-        //new Vector2(1, -1),
+        new Vector2(-1, -1),
+        new Vector2(-1, 1),
+        new Vector2(1, 1),
+        new Vector2(1, -1),
     };
 
     private void Awake()
@@ -124,34 +124,42 @@ public class ViewFlowFieldManager : MonoBehaviour
         _targetPos.y = Mathf.Floor(_targetPos.y) + 0.5f;
         if (!grid.ContainsKey(_targetPos)) return;
 
-        hash.Clear();
-        queue.Clear();
+        setCost.Clear();
+        searchGrid.Clear();
 
         grid[_targetPos].cost = 0;
         grid[_targetPos].direction = Vector2.zero;
 
-        hash.Add(grid[_targetPos]);
-        queue.Enqueue(grid[_targetPos]);
+        setCost.Add(grid[_targetPos]);
+        searchGrid.Enqueue(grid[_targetPos]);
 
-        while (queue.Count > 0)
+        while (searchGrid.Count > 0)
         {
-            var node = queue.Dequeue();
+            var thisGrid = searchGrid.Dequeue();
 
-            for (int i = 0; i < checkNodePos.Length; i++)
+            for (int i = 0; i < checkPos.Length; i++)
             {
-                var nextNode = node.position + checkNodePos[i];
-                if (!grid.ContainsKey(nextNode)) continue;
+                var nextGrid = thisGrid.position + checkPos[i];
+                if (!grid.ContainsKey(nextGrid)) continue;
 
-                else if (!hash.Contains(grid[nextNode]))
+                else if (!setCost.Contains(grid[nextGrid]))
                 {
-                    grid[nextNode].cost = node.cost + 1;
-                    queue.Enqueue(grid[nextNode]);
-                    hash.Add(grid[nextNode]);
+                    if (checkPos[i].x == 0 || checkPos[i].y == 0)
+                    {
+                        setCost.Add(grid[nextGrid]);
+                        searchGrid.Enqueue(grid[nextGrid]);
+                        grid[nextGrid].cost = thisGrid.cost + 1;
+                    }
+
+                    else
+                    {
+                        grid[nextGrid].cost = thisGrid.cost + 2;
+                    }
                 }
 
-                if (grid[nextNode].cost < node.cost)
+                if (grid[nextGrid].cost < thisGrid.cost)
                 {
-                    node.direction = (grid[nextNode].position - node.position).normalized;
+                    thisGrid.direction = (grid[nextGrid].position - thisGrid.position).normalized;
                 }
             }
         }

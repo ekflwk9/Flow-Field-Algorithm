@@ -17,14 +17,19 @@ public class FlowFieldManager : MonoBehaviour
 
     public Dictionary<Vector2, Grid> grid = new();
     private HashSet<Grid> setCostGrid = new();
-    private Queue<Grid> setNode = new();
+    private Queue<Grid> searchGrid = new();
 
-    private Vector2[] checkNodePos =
+    private Vector2[] checkPos =
     {
         new Vector2(0, -1),
         new Vector2(-1, 0),
         new Vector2(0, 1),
         new Vector2(1, 0),
+
+        new Vector2(-1, -1),
+        new Vector2(-1, 1),
+        new Vector2(1, 1),
+        new Vector2(1, -1),
     };
 
 #if UNITY_EDITOR
@@ -86,28 +91,36 @@ public class FlowFieldManager : MonoBehaviour
         if (!grid.ContainsKey(_targetPos)) return;
 
         setCostGrid.Clear();
-        setNode.Clear();
+        searchGrid.Clear();
 
         grid[_targetPos].cost = 0;
         grid[_targetPos].direction = Vector2.zero;
 
         setCostGrid.Add(grid[_targetPos]);
-        setNode.Enqueue(grid[_targetPos]);
+        searchGrid.Enqueue(grid[_targetPos]);
 
-        while (setNode.Count > 0)
+        while (searchGrid.Count > 0)
         {
-            var thisNode = setNode.Dequeue();
+            var thisNode = searchGrid.Dequeue();
 
-            for (int i = 0; i < checkNodePos.Length; i++)
+            for (int i = 0; i < checkPos.Length; i++)
             {
-                var nextNode = thisNode.position + checkNodePos[i];
+                var nextNode = thisNode.position + checkPos[i];
                 if (!grid.ContainsKey(nextNode)) continue;
 
                 else if (!setCostGrid.Contains(grid[nextNode]))
                 {
-                    grid[nextNode].cost = thisNode.cost + 1;
-                    setNode.Enqueue(grid[nextNode]);
-                    setCostGrid.Add(grid[nextNode]);
+                    if (checkPos[i].x == 0 || checkPos[i].y == 0)
+                    {
+                        searchGrid.Enqueue(grid[nextNode]);
+                        setCostGrid.Add(grid[nextNode]);
+                        grid[nextNode].cost = thisNode.cost + 1;
+                    }
+
+                    else
+                    {
+                        grid[nextNode].cost = thisNode.cost + 2;
+                    }
                 }
 
                 if (grid[nextNode].cost < thisNode.cost)
